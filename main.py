@@ -166,16 +166,23 @@ class HuanJuPlugin(Star):
             yield event.plain_result(f"未找到 {platform_name} 平台适配器。")
             return
         # 每人发两张牌
+        card1 = None
+        card2 = None
         for player_id in room["players"]:
-            for _ in range(2):
-                card = self.draw_card(room)
-                room["current_cards"][player_id].append(card)
+    # 第一次抽牌
+            card1 = self.draw_card(room)
+            room["current_cards"][player_id].append(card1)
+    
+    # 第二次抽牌
+            card2 = self.draw_card(room)
+            room["current_cards"][player_id].append(card2)
+    
+    # 计算点数
             points = self.calculate_points(room["current_cards"][player_id])
             room["points"][player_id] = points
 
-            cards_str = " ".join(room["current_cards"][player_id])
-            content = f"你的手牌是: {cards_str}\n当前点数: {points}"
-
+    # 生成信息
+            content = f"你的第一张牌（暗牌）: {card1}\n你的第二张牌（明牌）: {card2}\n你的手牌是: {card1} {card2}\n当前点数: {points}"
             if event.platform_meta.name == "aiocqhttp":
         # QQ 适配器，私聊发送手牌信息
                 try:
@@ -186,6 +193,11 @@ class HuanJuPlugin(Star):
                     yield event.plain_result(f"无法私信玩家 {player_id}，请确保已添加机器人好友。")
             else:
                 await adapter.client.post_text(player_id, content)
+            result = MessageChain()
+            # 使用玩家名称而不是ID
+            display_name = self.get_player_display_name(player_id)
+            result.message(f"@{player_id}\n你的明牌是: {card2}")
+            await self.context.send_message(event.unified_msg_origin, result)
 
         # 设置第一个玩家
         room["current_player"] = list(room["players"])[0]
@@ -225,7 +237,7 @@ class HuanJuPlugin(Star):
         
         cards_str = " ".join(room["current_cards"][player_id])
         result = MessageChain()
-        result.message(f"@{player_id}\n你要了一张牌: {card}\n当前手牌: {cards_str}\n当前点数: {points}")
+        result.message(f"@{player_id}\n你要了一张牌: {card}")
         await self.context.send_message(event.unified_msg_origin, result)
         
         if points > 21:
