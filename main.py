@@ -196,7 +196,7 @@ class HuanJuPlugin(Star):
             result = MessageChain()
             # 使用玩家名称而不是ID
             display_name = self.get_player_display_name(player_id)
-            result.message(f"@{player_id}\n你的明牌是: {card2}")
+            result.message(f"@{display_name}\n你的明牌是: {card2}")
             await self.context.send_message(event.unified_msg_origin, result)
 
         # 设置第一个玩家
@@ -208,7 +208,7 @@ class HuanJuPlugin(Star):
             await self.bot_play(event, group_id, first_player)
         else:
             display_name = self.get_player_display_name(first_player)
-            yield event.plain_result(f"游戏开始！请 @{first_player} ({display_name}) 选择 /hj hit 要牌 或 /hj stand 停牌")
+            yield event.plain_result(f"游戏开始！请 @({display_name}) 选择 /hj hit 要牌 或 /hj stand 停牌")
 
     @huanju.command("hit")
     async def hit(self, event: AstrMessageEvent):
@@ -263,7 +263,7 @@ class HuanJuPlugin(Star):
                     await self.bot_play(event, group_id, next_player)
                 else:
                     display_name = self.get_player_display_name(next_player)
-                    yield event.plain_result(f"轮到 @{next_player} ({display_name}) 的回合，请选择 /hj hit 要牌 或 /hj stand 停牌")
+                    yield event.plain_result(f"轮到 @({display_name}) 的回合，请选择 /hj hit 要牌 或 /hj stand 停牌")
             else:
                 # 游戏结束，计算结果
                 result = await self.get_game_result(room)
@@ -289,7 +289,7 @@ class HuanJuPlugin(Star):
             
         room["player_status"][player_id] = "stand"
         points = room["points"][player_id]
-        yield event.plain_result(f"你选择停牌，最终点数: {points}")
+        yield event.plain_result(f"你选择停牌")
         
         # 找下一个玩家
         players = list(room["players"])
@@ -306,12 +306,12 @@ class HuanJuPlugin(Star):
         if next_player:
             room["current_player"] = next_player
             if str(next_player).startswith("bot_"):
-                msg = MessageChain().message(f"轮到 {room['bot_names'][next_player]} 的回合")
+                msg = MessageChain().message(f"轮到 {room['bot_names']} 的回合")
                 await self.context.send_message(event.unified_msg_origin, msg)
                 await self.bot_play(event, group_id, next_player)
             else:
                 display_name = self.get_player_display_name(next_player)
-                yield event.plain_result(f"轮到 @{next_player} ({display_name}) 的回合，请选择 /hj hit 要牌 或 /hj stand 停牌")
+                yield event.plain_result(f"轮到@({display_name}) 的回合，请选择 /hj hit 要牌 或 /hj stand 停牌")
         else:
             # 游戏结束，计算结果
             result = await self.get_game_result(room)
@@ -416,7 +416,7 @@ class HuanJuPlugin(Star):
                 await self.bot_play(event, group_id, next_player)
             else:
                 display_name = self.get_player_display_name(next_player)
-                msg = MessageChain().message(f"轮到 @{next_player} ({display_name}) 的回合，请选择 /hj hit 要牌 或 /hj stand 停牌")
+                msg = MessageChain().message(f"轮到 @({display_name}) 的回合，请选择 /hj hit 要牌 或 /hj stand 停牌")
                 await self.context.send_message(event.unified_msg_origin, msg)
         else:
             # 游戏结束，计算结果
